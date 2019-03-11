@@ -1,3 +1,6 @@
 src/*.o
 src/*.mod
 src/gsnap
+
+build
+ports/snap-kf
