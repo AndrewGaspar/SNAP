@@ -7,3 +7,4 @@ find_package(MPI 3.0 REQUIRED)
 
 add_executable(snap ${SOURCES})
 target_link_libraries(snap MPI::MPI_Fortran)
+target_compile_definitions(snap PRIVATE MPI)
