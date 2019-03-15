@@ -279,6 +279,8 @@ MODULE outer_module
 
 
   SUBROUTINE outer_conv ( otno, ng_per_thrd, nnstd_used, grp_act )
+    use fargo
+    use snap_fargo
 
 !-----------------------------------------------------------------------
 !
@@ -297,47 +299,34 @@ MODULE outer_module
 
     INTEGER(i_knd) :: n, g
 
-    REAL(r_knd) :: dft
+    REAL(r_knd) :: dfmxoa(1)
 
-    REAL(r_knd), DIMENSION(nx,ny,nz,ng_per_thrd) :: df
+    type(task_schedule_t) :: schedule
+    type(snap_outer_convergence_inst_t) :: outer_convergence
 !_______________________________________________________________________
 !
 !   Thread to speed up computation of df by looping over groups. Rejoin
 !   threads and then determine max error.
 !_______________________________________________________________________
 
-  !$OMP PARALLEL DO NUM_THREADS(nnstd_used) IF(nnstd_used>1)           &
-  !$OMP& SCHEDULE(STATIC,1) DEFAULT(SHARED) PRIVATE(n,g)               &
-  !$OMP& PROC_BIND(CLOSE)
-    DO n = 1, ng_per_thrd
+    call task_schedule_new(schedule)
 
-      g = grp_act(n)
-      IF ( g == 0 ) THEN
-        df(:,:,:,n) = -one
-        CYCLE
-      END IF
+    call outer_convergence%init(schedule)
 
-      df(:,:,:,n) = one
-      WHERE( ABS( flux0po(:,:,:,g) ) < tolr )
-        flux0po(:,:,:,g) = one
-        df(:,:,:,n) = zero
-      END WHERE
-      df(:,:,:,n) = ABS( flux0(:,:,:,g)/flux0po(:,:,:,g) - df(:,:,:,n) )
+    call outer_convergence%bind_nx(nx)
+    call outer_convergence%bind_ny(ny)
+    call outer_convergence%bind_nz(nz)
+    call outer_convergence%bind_ng(ng)
+    call outer_convergence%bind_ng_per_thread(ng_per_thrd)
+    call outer_convergence%bind_tolr(tolr)
+    call outer_convergence%bind_grp_act(grp_act)
+    call outer_convergence%bind_flux0(flux0)
+    call outer_convergence%bind_flux0po(flux0po)
+    call outer_convergence%bind_dfmxo(dfmxoa)
 
-    END DO
-  !$OMP END PARALLEL DO
+    call schedule%execute()
 
-    dft = MAXVAL( df )
-
-  !$OMP MASTER
-    dfmxo = -HUGE( one )
-  !$OMP END MASTER
-  !$OMP BARRIER
-
-  !$OMP CRITICAL
-    dfmxo = MAX( dfmxo, dft )
-  !$OMP END CRITICAL
-  !$OMP BARRIER
+    dfmxo = dfmxoa(1)
 
   !$OMP MASTER
 

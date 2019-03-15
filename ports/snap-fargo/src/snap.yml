@@ -11,8 +11,20 @@ modules:
       ng_per_thread: i32
       inno: i32
       tolr: double
-      grp_act: i32[ng], contiguous
-      flux0: double[nx,ny,nz,ng], contiguous
+      grp_act: i32[ng],                  contiguous
+      flux0:   double[nx,ny,nz,ng],      contiguous
       flux0pi: double[nx,ny,nz,ng], out, contiguous
-      iits: i32[ng], out, contiguous
-      dfmxi: double[ng], out, contiguous
+      iits:    i32[ng],             out, contiguous
+      dfmxi:   double[ng],          out, contiguous
+  - name: outer_convergence
+    args:
+      nx: i32
+      ny: i32
+      nz: i32
+      ng: i32
+      ng_per_thread: i32
+      tolr: double
+      grp_act: i32[ng], contiguous
+      flux0:   double[nx,ny,nz,ng],      contiguous
+      flux0po: double[nx,ny,nz,ng], out, contiguous
+      dfmxo: double[1], out
