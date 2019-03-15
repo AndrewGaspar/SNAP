@@ -21,11 +21,11 @@ void snap::inner_convergence(std::int32_t nx,
                              std::int32_t ng_per_thread,
                              std::int32_t inno,
                              double tolr,
-                             Kokkos::View<std::int32_t const *> grp_act,
-                             Kokkos::View<double const ****, Kokkos::LayoutStride> flux0,
-                             Kokkos::View<double ****, Kokkos::LayoutStride> flux0pi,
-                             Kokkos::View<std::int32_t *> iits,
-                             Kokkos::View<double *> dfmxi) {
+                             Kokkos::View<std::int32_t const *, Kokkos::LayoutLeft> grp_act,
+                             Kokkos::View<double const ****, Kokkos::LayoutLeft> flux0,
+                             Kokkos::View<double ****, Kokkos::LayoutLeft> flux0pi,
+                             Kokkos::View<std::int32_t *, Kokkos::LayoutLeft> iits,
+                             Kokkos::View<double *, Kokkos::LayoutLeft> dfmxi) {
     Kokkos::View<double ****, Kokkos::LayoutLeft> df(
         "snap::inner_convergence::df", nx, ny, nz, ng_per_thread);
 

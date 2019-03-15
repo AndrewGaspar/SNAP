@@ -11,8 +11,8 @@ modules:
       ng_per_thread: i32
       inno: i32
       tolr: double
-      grp_act: i32[ng]
-      flux0: double[nx,ny,nz,ng]
-      flux0pi: double[nx,ny,nz,ng], out
-      iits: i32[ng], out
-      dfmxi: double[ng], out
+      grp_act: i32[ng], contiguous
+      flux0: double[nx,ny,nz,ng], contiguous
+      flux0pi: double[nx,ny,nz,ng], out, contiguous
+      iits: i32[ng], out, contiguous
+      dfmxi: double[ng], out, contiguous
