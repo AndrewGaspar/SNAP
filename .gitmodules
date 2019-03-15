@@ -1,0 +1,3 @@
+[submodule "ports/snap-fargo/deps/fargo"]
+	path = ports/snap-fargo/deps/fargo
+	url = /Users/agaspar/Code/fargo

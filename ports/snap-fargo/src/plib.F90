@@ -135,6 +135,14 @@ MODULE plib_module
   INTEGER(OMP_LOCK_KIND), ALLOCATABLE, DIMENSION(:) :: lock
 #endif
 
+  INTERFACE
+    subroutine kokkos_init() bind(C, name="kokkos_init")
+    end subroutine kokkos_init
+
+    subroutine kokkos_finish() bind(C, name="kokkos_finish")
+    end subroutine kokkos_finish
+  END INTERFACE
+
 
   CONTAINS
 
@@ -1318,6 +1326,8 @@ MODULE plib_module
     do_nested = .FALSE.
 
 #endif
+
+    call kokkos_init()
 
 !_______________________________________________________________________
 !_______________________________________________________________________

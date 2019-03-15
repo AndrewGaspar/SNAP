@@ -256,6 +256,8 @@ MODULE inner_module
 
 
   SUBROUTINE inner_conv ( inno, iits, ng_per_thrd, nnstd_used, grp_act )
+    use fargo
+    use snap_fargo
 
 !-----------------------------------------------------------------------
 !
@@ -275,36 +277,36 @@ MODULE inner_module
 
     INTEGER(i_knd) :: n, g
 
-    REAL(r_knd), DIMENSION(nx,ny,nz,ng_per_thrd) :: df
+    type(task_schedule_t) :: schedule
+    type(snap_inner_convergence_inst_t) :: inner_conv_task
+
 !_______________________________________________________________________
 !
 !   Thread group loops for computing local difference (df) array.
 !   compute max for that group. Need a barrier for the main threads.
 !_______________________________________________________________________
 
-  !$OMP PARALLEL DO NUM_THREADS(nnstd_used) IF(nnstd_used>1)           &
-  !$OMP& SCHEDULE(STATIC,1) DEFAULT(SHARED) PRIVATE(n,g)               &
-  !$OMP& PROC_BIND(CLOSE)
-    DO n = 1, ng_per_thrd
+    call task_schedule_new(schedule)
 
+    call inner_conv_task%init(schedule)
 
-      g = grp_act(n)
-      IF ( g == 0 ) CYCLE
+    call inner_conv_task%bind_nx(nx)
+    call inner_conv_task%bind_ny(ny)
+    call inner_conv_task%bind_nz(nz)
+    call inner_conv_task%bind_ng(ng)
+    call inner_conv_task%bind_ng_per_thread(ng_per_thrd)
+    call inner_conv_task%bind_inno(inno)
+    call inner_conv_task%bind_tolr(tolr)
+    call inner_conv_task%bind_grp_act(grp_act)
+    call inner_conv_task%bind_flux0(flux0)
+    call inner_conv_task%bind_flux0pi(flux0pi)
+    call inner_conv_task%bind_iits(iits)
+    call inner_conv_task%bind_dfmxi(dfmxi)
 
-      iits(g) = inno
+    call schedule%execute()
 
-      df(:,:,:,n) = one
-      WHERE( ABS( flux0pi(:,:,:,g) ) < tolr )
-        flux0pi(:,:,:,g) = one
-        df(:,:,:,n) = zero
-      END WHERE
-      df(:,:,:,n) = ABS( flux0(:,:,:,g)/flux0pi(:,:,:,g) - df(:,:,:,n) )
-
-      dfmxi(g) = MAXVAL( df(:,:,:,n) )
-
-    END DO
-  !$OMP END PARALLEL DO
   !$OMP BARRIER
+
 !_______________________________________________________________________
 !
 !   All procs then reduce dfmxi for all groups, determine which groups
